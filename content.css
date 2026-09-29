@@ -94,16 +94,36 @@
 .gsn-closed .gsn-dot { background: var(--fgColor-done, #8250df); }
 .gsn-skipped .gsn-dot { background: var(--fgColor-muted, #59636e); }
 .gsn-num { flex: none; color: var(--fgColor-muted, #59636e); font-variant-numeric: tabular-nums; }
-.gsn-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.gsn-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 .gsn-closed .gsn-text, .gsn-skipped .gsn-text { color: var(--fgColor-muted, #59636e); font-weight: 400; }
 .gsn-prog {
-  flex: none; margin-left: auto;
+  flex: none;
   padding: 0 6px; border-radius: 10px;
   border: 1px solid var(--borderColor-default, #d1d9e0);
   color: var(--fgColor-muted, #59636e);
   font-size: 11px; line-height: 16px; font-variant-numeric: tabular-nums;
 }
 .gsn-prog:empty { display: none; }
+
+/* assignees, stacked like GitHub's */
+.gsn-avatars { flex: none; display: inline-flex; align-items: center; }
+.gsn-avatars:empty { display: none; }
+.gsn-avatars img {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bgColor-muted, #f6f8fa);
+  box-shadow: 0 0 0 1.5px var(--bgColor-default, #fff);
+}
+.gsn-avatars img + img { margin-left: -5px; }
+.gsn-more { margin-left: 3px; font-size: 10px; color: var(--fgColor-muted, #59636e); }
+
+.gsn-btn svg { display: block; }
+
+/* GitHub's Sub-issues block after the locate button scrolled to it */
+@keyframes gsn-flash {
+  0%, 35% { box-shadow: 0 0 0 2px var(--fgColor-accent, #0969da), 0 0 0 7px rgba(56, 139, 253, .25); }
+  100% { box-shadow: 0 0 0 2px transparent, 0 0 0 7px transparent; }
+}
+.gsn-flash { animation: gsn-flash 1.5s ease-out; border-radius: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   .gsn-item.gsn-enter, .gsn-item.gsn-leave, .gsn-placeholder .gsn-text { animation: none; }

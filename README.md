@@ -30,7 +30,9 @@ Title chỉ hiện các prefix `[...]` tiếng Anh/Việt ở đầu, bỏ prefi
 Click sub-issue ở trang issue → mở trong side panel của GitHub (`/owner/repo/issues/123?issue=owner|repo|456`),
 list vẫn giữ cây của issue cha và tô sáng sub-issue đang mở. Ở Project → mở trong pane của Project.
 Ctrl/⌘+click hoặc chuột giữa → mở trang của chính issue đó (`/owner/repo/issues/456`) ở tab mới.
-Chấm xanh = open, tím = closed, xám = not planned.
+Chấm xanh = open, tím = closed, xám = not planned. Avatar cuối dòng = người được assign (rê chuột xem tên,
+ô lọc tìm được theo tên assignee).
+Nút ⌖ trên header → cuộn mượt tới khối Sub-issues của GitHub trên trang (khối đó loé viền để dễ thấy).
 Kéo header để di chuyển, nút `–` để thu gọn; vị trí & trạng thái được nhớ.
 
 Dev: `git clone` repo rồi Load unpacked thư mục clone; cập nhật bằng `git pull` + ↻. Edge dùng `edge://extensions`.

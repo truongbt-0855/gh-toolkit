@@ -4,6 +4,8 @@
   const ISSUE_RE = /^\/([^/]+)\/([^/]+)\/issues\/(\d+)\/?$/;
   const TREEITEM = '[role="treeitem"]';
   const CHEVRON = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>';
+  const LOCATE = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">' +
+    '<circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1" fill="currentColor"/><path d="M8 .75v2.5M8 12.75v2.5M.75 8h2.5M12.75 8h2.5"/></svg>';
   let lastKey = "";
   let collapsed = false;
   let pos = null;
@@ -120,6 +122,24 @@
     return "";
   }
 
+  // assignee avatars GitHub shows at the end of a row
+  function rowAssignees(row, b) {
+    const out = [];
+    const seen = new Set();
+    for (const img of own(row, "img", b)) {
+      const hint = `${img.src} ${img.getAttribute("class") || ""} ${img.getAttribute("data-testid") || ""}`;
+      if (!/avatar/i.test(hint)) continue;
+      const link = img.closest("a[href]");
+      const name = (img.getAttribute("alt") || img.getAttribute("title") || link?.getAttribute("aria-label") ||
+        link?.getAttribute("href")?.split("/").pop() || "").replace(/^@/, "").trim();
+      const k = name || img.src;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ src: img.src, name });
+    }
+    return out;
+  }
+
   // GitHub's expand/collapse control of a TreeView row
   function nativeToggle(li) {
     const pick = (sel) => own(li, sel, TREEITEM)[0];
@@ -155,7 +175,7 @@
       if (!title) return;
       seen.add(key);
       const progress = rowProgress(row, b);
-      out.push({ ...ref, key, title, depth, row, a, progress, state: rowState(row, b),
+      out.push({ ...ref, key, title, depth, row, a, progress, state: rowState(row, b), assignees: rowAssignees(row, b),
         expanded: isTree ? expandState(row, progress) : null });
     };
 
@@ -236,6 +256,27 @@
     }, 100);
   }
 
+  // Smooth-scroll the page to GitHub's Sub-issues block, then flash it once the scroll has settled.
+  function scrollToNative() {
+    const cur = currentIssue();
+    const sec = cur && findSubIssueSection(cur);
+    if (!sec) return;
+    sec.style.scrollMarginTop = "80px"; // clear GitHub's sticky issue header
+    sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    let done = false;
+    const flash = () => {
+      if (done) return;
+      done = true;
+      document.removeEventListener("scrollend", flash, true);
+      sec.classList.remove("gsn-flash");
+      void sec.offsetWidth; // restart the animation on repeated clicks
+      sec.classList.add("gsn-flash");
+      setTimeout(() => sec.classList.remove("gsn-flash"), 1600);
+    };
+    document.addEventListener("scrollend", flash, true);
+    setTimeout(flash, 1200); // already in view -> no scrollend
+  }
+
   // ---------- link building ----------
   // A row's href (Ctrl/middle click -> new tab) is the issue itself; a left click opens it in a panel instead.
   const issueHref = (it) => `${location.origin}/${it.owner}/${it.repo}/issues/${it.num}`;
@@ -261,6 +302,7 @@
       <div class="gsn-head">
         <span class="gsn-title">Sub-issues</span>
         <span class="gsn-count"></span>
+        <button class="gsn-btn gsn-locate" title="Cuộn tới Sub-issues trên trang">${LOCATE}</button>
         <button class="gsn-btn gsn-refresh" title="Quét lại">↻</button>
         <button class="gsn-btn gsn-toggle" title="Thu gọn / mở rộng">–</button>
       </div>
@@ -275,6 +317,7 @@
       applyCollapsed(p);
     };
     p.querySelector(".gsn-refresh").onclick = (e) => { e.stopPropagation(); pending.clear(); lastKey = ""; render(); };
+    p.querySelector(".gsn-locate").onclick = (e) => { e.stopPropagation(); scrollToNative(); };
     p.querySelector(".gsn-search").oninput = () => applyFilter(p);
 
     const body = p.querySelector(".gsn-body");
@@ -371,13 +414,14 @@
   let shownCur = null;
   let shownRoot = "";
 
-  const rowSig = (i) => `${i.key}:${i.depth}:${i.state}:${i.expanded}:${i.progress}:${i.title}`;
+  const namesOf = (i) => (i.assignees || []).map((u) => u.name || u.src).join(", ");
+  const rowSig = (i) => `${i.key}:${i.depth}:${i.state}:${i.expanded}:${i.progress}:${namesOf(i)}:${i.title}`;
 
   function createRow() {
     const a = document.createElement("a");
     a.className = "gsn-item";
     a.innerHTML = '<span class="gsn-indent"></span><span class="gsn-caret"></span><span class="gsn-dot"></span>' +
-      '<span class="gsn-num"></span><span class="gsn-text"></span><span class="gsn-prog"></span>';
+      '<span class="gsn-num"></span><span class="gsn-text"></span><span class="gsn-prog"></span><span class="gsn-avatars"></span>';
     return a;
   }
 
@@ -396,8 +440,9 @@
       return;
     }
     el.href = issueHref(it);
-    el.title = `${it.owner}/${it.repo}#${it.num}\n${it.title}`;
-    el.dataset.search = `#${it.num} ${it.title}`.toLowerCase();
+    const names = (it.assignees || []).map((u) => u.name).filter(Boolean).join(", ");
+    el.title = `${it.owner}/${it.repo}#${it.num}\n${it.title}` + (names ? `\nAssignee: ${names}` : "");
+    el.dataset.search = `#${it.num} ${it.title} ${names}`.toLowerCase();
     el.classList.remove("gsn-open", "gsn-closed", "gsn-skipped");
     el.classList.add("gsn-" + it.state);
     el.classList.toggle("gsn-active", active);
@@ -414,6 +459,20 @@
     q(".gsn-num").textContent = "#" + it.num;
     q(".gsn-text").textContent = shortTitle(it.title);
     q(".gsn-prog").textContent = it.progress;
+    const av = q(".gsn-avatars");
+    const avSig = namesOf(it);
+    if (av.dataset.sig !== avSig) { // rebuild only when assignees change, so avatars don't reload
+      av.dataset.sig = avSig;
+      av.textContent = "";
+      const list = it.assignees || [];
+      for (const u of list.slice(0, 3)) {
+        const img = document.createElement("img");
+        img.src = u.src;
+        img.alt = "";
+        av.appendChild(img);
+      }
+      if (list.length > 3) av.insertAdjacentHTML("beforeend", `<span class="gsn-more">+${list.length - 3}</span>`);
+    }
   }
 
   // Update the list in place (keyed by issue) so rows can slide in / out instead of being rebuilt.
