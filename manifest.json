@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Sub-issue Navigator",
+  "version": "1.2.0",
+  "description": "Thanh bên trái liệt kê cây sub-issue của issue đang mở; click để mở nhanh trong side panel của issue hoặc pane của Project.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://github.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": { "128": "icon.png" }
+}
