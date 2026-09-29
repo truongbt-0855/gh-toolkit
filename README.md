@@ -1,6 +1,21 @@
 # GitHub Sub-issue Navigator
 
-Thanh nổi bên trái liệt kê sub-issue của issue đang mở (chỉ hiện ở issue có sub-issue). Hoạt động ở:
+Menu nổi bên trái hiện cây sub-issue của issue đang mở trên GitHub; click để mở nhanh.
+
+![Demo](docs/demo.png)
+
+## Cài đặt (Chrome)
+1. Vào https://github.com/truongbt-0855/gh-toolkit → nút xanh **Code** → **Download ZIP** → giải nén.
+2. Mở Chrome, gõ `chrome://extensions` vào thanh địa chỉ.
+3. Bật **Developer mode** (góc trên bên phải).
+4. Bấm **Load unpacked** → chọn thư mục vừa giải nén (thư mục có file `manifest.json`).
+5. Mở một issue có sub-issue trên GitHub là thấy menu.
+
+⚠️ Đừng xoá thư mục đã giải nén, xoá là extension mất.
+Cập nhật bản mới: tải ZIP lại, giải nén đè lên thư mục cũ, rồi bấm ↻ ở extension trong `chrome://extensions`.
+
+## Tính năng
+Chỉ hiện ở issue có sub-issue. Hoạt động ở:
 - Trang issue thường: `github.com/owner/repo/issues/123`
 - Pane issue trong Project: `.../projects/39/views/4?pane=issue&issue=owner|repo|123`
 
@@ -18,14 +33,7 @@ Ctrl/⌘+click hoặc chuột giữa → mở trang của chính issue đó (`/o
 Chấm xanh = open, tím = closed, xám = not planned.
 Kéo header để di chuyển, nút `–` để thu gọn; vị trí & trạng thái được nhớ.
 
-## Cài (Chrome / Edge)
-1. `git clone https://github.com/truongbt-0855/gh-toolkit.git`
-   (hoặc trên trang repo: **Code → Download ZIP** rồi giải nén).
-2. `chrome://extensions` (Edge: `edge://extensions`) → bật **Developer mode** → **Load unpacked** → chọn thư mục vừa clone.
-3. Mở issue nào có sub-issue, panel tự hiện.
-
-## Cập nhật
-`git pull` trong thư mục đó → vào `chrome://extensions` bấm ↻ ở extension → F5 trang GitHub.
+Dev: `git clone` repo rồi Load unpacked thư mục clone; cập nhật bằng `git pull` + ↻. Edge dùng `edge://extensions`.
 
 ## Cách hoạt động
 Extension **đọc DOM** của panel "Sub-issues" mà GitHub đã render, không gọi API → không cần token,
